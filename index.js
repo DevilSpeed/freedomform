@@ -33,12 +33,14 @@ var data = {
         filter: ['isInteger'],
         label: '年龄 :',
         displayName: '年龄',
+        layout: 'block1',
     }, {
         ajaxName: 'phone',
         mustBe: true,
         filter: ['isPhone'],
         label: '电话 :',
         displayName: '电话',
+        layout: 'block2',
     }],
     buttons: [{
         eventName: 'update',
@@ -47,7 +49,17 @@ var data = {
         clickEvent: 'put',
         disableEvent: function(files) {
 
-        }
+        },
+        layout: 'block1',
+    }],
+    layouts: [{
+        type: 'block',
+        name: 'block1',
+        default: 'show'
+    }, {
+        type: 'block',
+        name: 'block2',
+        default: 'hide'
     }],
 };
 (function($, win, doc, undefined) {
@@ -130,12 +142,12 @@ var data = {
             clickEvent: null,
         };
         this.options = $.extend({}, this.defaults, opt);
+        this.ele = new template(this.options);
     };
     formatFiles.prototype = {
         // 初始化表单条目
         init: function() {
             var _this = this;
-            _this.ele = new template(_this.options, this.expose);
             var HTML = _this.ele.render();
             // 绑定change事件,
             HTML.bind('input propertychange', function() {
@@ -189,6 +201,45 @@ var data = {
                 _this.ele.hideError();
             }
         }
+    };
+    var layout = function(opt) {
+        this.defaults = {
+            type: null,
+            name: null,
+            className: null,
+            conditionEvent: null,
+            parent: null,
+            template: null,
+            default: 'show',
+        };
+        this.options = $.extend({}, this.defaults, opt);
+        this.HTML = $(this.template(this.options.template));
+        this[this.options.default]();
+    };
+    layout.prototype = {
+        render: function() {
+            return this.HTML;
+        },
+        append: function(data) {
+            this.HTML.append(data);
+        },
+        show: function() {
+            this.HTML.css('display', 'block');
+        },
+        hide: function() {
+            this.HTML.css('display', 'none');
+        },
+        condition: function() {
+            var _this = this;
+            var event = this.options.conditionEvent || function() {
+                return _this.HTML.css('display') == 'block';
+            }
+            this.HTML.css('display', (event() ? 'block' : 'none'));
+        },
+        template: function(data) {
+            data = data || '<div class="layout' + (' ' + this.options.className || '') + '"></div>';
+            return data;
+        },
     };
     // 接口调用事件
     var AJAX = function(opt, files) {
@@ -283,7 +334,7 @@ var data = {
             _data.option = files[i];
             _data.event = new formatFiles(files[i]);
             // 输出到页面
-            this.append(_data.event.init());
+            // this.append(_data.event.init());
         };
 
         // 缓存事件类型		
@@ -324,8 +375,50 @@ var data = {
             var _button = elementButtons[buttons[y].eventName] = {};
             _button.option = buttons[y];
             _button.event = new formatButtons(buttons[y], expose);
-            this.append(_button.event.init());
+            // this.append(_button.event.init());
         };
+
+        // 输出layout
+        var layoutOption = options.layouts;
+        var layouts = {};
+        for (var r = 0; r < layoutOption.length; r++) {
+            var _layout = layouts[layoutOption[r].name] = {};
+            _layout.option = layoutOption[r];
+            _layout.event = new layout(_layout.option);
+            this.append(_layout.event.render());
+        };
+
+        console.log(layouts);
+
+
+        for (var items in element) {
+            if (element.hasOwnProperty(items)) {
+                if (layouts[element[items].option.layout]) {
+                    layouts[element[items].option.layout].event.append(element[items].event.init());
+                } else {
+                    this.before(element[items].event.init());
+                }
+            }
+        };
+
+        for (var items in elementButtons) {
+            if (elementButtons.hasOwnProperty(items)) {
+                if (layouts[elementButtons[items].option.layout]) {
+                    layouts[elementButtons[items].option.layout].event.append(elementButtons[items].event.init());
+                } else {
+                    this.before(elementButtons[items].event.init());
+                }
+            }
+        }
+
+
+
+        // for (var x = 0; x < element.length; x++) {
+
+        // }
+
+
+
 
         // 调用自动调用接口
         if (autoInit) {
@@ -335,14 +428,3 @@ var data = {
     };
 })(jQuery, window, document);
 var _data = $('#CRM').autoForm(data);
-
-
-
-function checkEvent() {
-    var setting = {
-        url: 'index2.json',
-        AjaxType: 'GET',
-        data: {},
-    };
-    _data.get.set(setting);
-}
