@@ -1,3 +1,4 @@
+var Api = common;
 var data = {
     event: [{
         type: 'ajax',
@@ -6,7 +7,7 @@ var data = {
             url: 'index.json',
             type: 'GET',
             data: {},
-            auto: false,
+            auto: true,
             useData: true,
             beforeEvent: function(data, callback) { // ajax 执行前进行回调
                 callback(data); // 回调函数
@@ -24,7 +25,7 @@ var data = {
         type: 'ajax',
         name: 'updata',
         setting: {
-            url: 'index.json',
+            url: 'index2.json',
             type: 'GET',
             data: {},
             auto: false,
@@ -75,13 +76,12 @@ var data = {
             readonly: false, // 是否只读
             judes: ['notNull', 'isInteger'], // 验证条件 (change value 时进行操作)
         },
-    }],
-    botton: [{
+    }, {
         name: 'update',
         type: 'button',
         setting: {
             label: 'OK',
-            clickEvent: 'update',
+            clickEvent: 'updata',
         },
     }],
     layout: [{
@@ -93,7 +93,7 @@ var data = {
             event: function() {
                 return true;
             },
-            subset: ['name', 'box1', 'box2'],
+            subset: ['name', 'box1', 'box2', 'update'],
             parent: 'parent',
         },
     }, {
@@ -283,32 +283,23 @@ var data = {
                     return false
                 }
             },
-            initFile: function(data, namespace) {
+            initFile: function(data, namespace, events) {
                 var files = {};
                 for (var i = 0; i < data.length; i++) {
                     var item = data[i];
                     _f.checkNamespace(item.name, namespace);
-                    files[item.name] = new _t[item.type](item.setting);
+                    files[item.name] = new _t[item.type](item.setting, events);
                 };
                 return files;
             },
-            initEvent: function(data, namespace, files) {
+            initEvent: function(data, namespace) {
                 var events = {};
                 for (var i = 0; i < data.length; i++) {
                     var item = data[i];
                     _f.checkNamespace(item.name, namespace);
-                    events[item.name] = new _e[item.type](item.setting, files);
+                    events[item.name] = new _e[item.type](item.setting);
                 };
                 return events;
-            },
-            initButton: function(data, namespace, events) {
-                var buttons = {};
-                for (var i = 0; i < data.length; i++) {
-                    var item = data[i];
-                    _f.checkNamespace(item.name, namespace);
-                    buttons[item.name] = new _t[item.type](item.setting, events);
-                };
-                return buttons;
             },
             initLayout: function(data, namespace) {
                 var layouts = {};
@@ -319,14 +310,8 @@ var data = {
                 };
                 return layouts;
             },
-            renderHtml: function($files, $buttons, $layouts, layoutArray, $this) {
+            renderHtml: function($files, $layouts, layoutArray, $this) {
                 // 合并元素
-                for (var item in $buttons) {
-                    if ($buttons.hasOwnProperty(item)) {
-                        var element = $buttons[item];
-                        $files[item] = element;
-                    }
-                };
                 for (var item in $layouts) {
                     if ($layouts.hasOwnProperty(item)) {
                         var element = $layouts[item];
@@ -343,10 +328,7 @@ var data = {
                     };
                 };
                 var form = $files[parent];
-
-                console.log(form);
                 _f.renderLayout(form, $files);
-
                 $this.append($files[parent].render());
             },
             renderLayout: function(data, $files) {
@@ -371,9 +353,17 @@ var data = {
                     event[eventName].perform();
                 };
             },
+            bindEventToFile: function(event, file) {
+                for (var item in event) {
+                    if (event.hasOwnProperty(item)) {
+                        var element = event[item];
+                        element.setFiles(file);
+                    }
+                }
+            }
         },
         _t = {
-            input: function(opt) {
+            input: function(opt, events) {
                 var html = '';
                 html += '	<div class="files-item">';
                 html += '		<label class="label"></label>';
@@ -394,7 +384,11 @@ var data = {
             block: function(opt, files) {
                 this.HTML = $('<div class="block' + (opt.className ? ' ' + opt.className : '') + '"></div>');
                 this.options = opt;
-            }
+            },
+            select: function(opt, events) {
+                this.HTML = $('<div class="files-item"><select></select></div>');
+                this.options = opt;
+            },
         };
     _t.input.prototype = {
         // 渲染html
@@ -459,6 +453,15 @@ var data = {
             return 'input'
         }
     };
+    _t.select.prototype = {
+        get: function() {
+            return this.HTML.find('select').val()
+        },
+        // 赋值
+        set: function(data) {
+            // this.HTML.find('select').val(data);
+        },
+    };
     _t.button.prototype = {
         // 初始化表单条目
         render: function() {
@@ -498,7 +501,7 @@ var data = {
         default: function(data, callback) { // ajax 执行前进行回调
             callback(data); // 回调函数
         },
-        ajax: function(opt, files) {
+        ajax: function(opt) {
             this.defaults = {
                 url: 'index.json',
                 type: 'GET',
@@ -511,7 +514,8 @@ var data = {
                     error: _e.default,
                 }
             };
-            this.files = files;
+            this.files = {};
+            this.result = null;
             this.options = $.extend({}, this.defaults, opt);
         },
     };
@@ -524,6 +528,7 @@ var data = {
                     url: $this.options.url,
                     success: function(result) {
                         $this.options.afterEvent.success(result, function(result) {
+                            $this.result = result;
                             $this.render();
                         });
                     },
@@ -537,8 +542,8 @@ var data = {
         },
         // 给表单元素赋值
         render: function() {
-            for (var item in this.files) {
-                if (this.files.hasOwnProperty(item)) {
+            for (var item in this.result) {
+                if (this.result.hasOwnProperty(item)) {
                     this.files[item].set(this.result[item]);
                 }
             }
@@ -550,18 +555,20 @@ var data = {
             this.options = data;
             this.perform();
         },
+        setFiles: function(data) {
+            this.files = data;
+        }
     };
 
     $.fn.freedomForm = function(options) {
         var $this = this;
         var namespace = [],
-            $files = _f.initFile(options.file, namespace),
-            $events = _f.initEvent(options.event, namespace, $files),
-            $buttons = _f.initButton(options.botton, namespace, $events),
+            $events = _f.initEvent(options.event, namespace),
+            $files = _f.initFile(options.file, namespace, $events),
             $layouts = _f.initLayout(options.layout, namespace);
-        _f.renderHtml($files, $buttons, $layouts, options.layout, $this);
+        _f.bindEventToFile($events, $files);
+        _f.renderHtml($files, $layouts, options.layout, $this);
         _f.autoEvent($events, options.event);
-        console.log($files, $events, $buttons);
         return $events;
     };
 })(jQuery, window, document);
