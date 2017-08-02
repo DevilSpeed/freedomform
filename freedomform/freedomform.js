@@ -47,7 +47,6 @@ var data = {
         type: 'input',
         name: 'name',
         setting: {
-            mustBe: true, // 是否必填
             filter: [], // 过滤方法 (set value 时进行操作)
             label: '姓名 :', // 表单标签名称
             displayName: '姓名', // 提示信息名称
@@ -58,7 +57,6 @@ var data = {
         type: 'input',
         name: 'phone',
         setting: {
-            mustBe: true, // 是否必填
             filter: [], // 过滤方法 (set value 时进行操作)
             label: '电话 :', // 表单标签名称
             displayName: '电话', // 提示信息名称
@@ -69,7 +67,6 @@ var data = {
         type: 'input',
         name: 'age',
         setting: {
-            mustBe: true, // 是否必填
             filter: [], // 过滤方法 (set value 时进行操作)
             label: '年龄 :', // 表单标签名称
             displayName: '年龄', // 提示信息名称
@@ -573,3 +570,4 @@ var data = {
     };
 })(jQuery, window, document);
 var _data = $('#CRM').freedomForm(data);
+console.log(_data);
