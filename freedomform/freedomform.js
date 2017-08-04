@@ -269,16 +269,21 @@ var data = {
                 };
                 return result;
             },
+            inArray: function(str, _array) {
+                if ($.inArray(str, _array) == -1) {
+                    return false
+                } else {
+                    return true
+                }
+            },
         },
         _f = {
             checkNamespace: function(str, namespace) {
-                if ($.inArray(str, namespace) == -1) {
-                    namespace.push(str);
-                    return true
-                } else {
+                if (_j.inArray(str, namespace)) {
                     console.error('警告 : 元素重名 [' + str + ']');
-                    return false
-                }
+                } else {
+                    namespace.push(str);
+                };
             },
             initFile: function(data, namespace, events) {
                 var files = {};
@@ -320,7 +325,6 @@ var data = {
                     var element = layoutArray[i];
                     if (element.setting.parent == 'parent') {
                         parent = element.name;
-
                         break;
                     };
                 };
