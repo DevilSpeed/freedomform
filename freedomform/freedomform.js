@@ -142,14 +142,19 @@ var data = {
 (function($, win, doc, undefined) {
     // 定义错误提示信息
     var _j = {
+        // 验证是否为数字
         isNumber: {
+            // 验证正则表达式
             expression: /^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/,
+            // 验证错误提示信息
             text: '只能为数字',
+            // 验证方法回调
             perform: function(str) {
                 var re = new RegExp(_j.isNumber.expression);
                 return re.test(str) ? true : false;
             }
         },
+        // 是否为银行卡号码
         isBankNum: {
             expression: /^\d{16}|\d{19}$/,
             text: '格式错误',
@@ -158,6 +163,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 是否为固定电话号码
         isTelephone: {
             expression: /^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$/,
             text: '格式错误',
@@ -166,6 +172,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 是否非正整数
         isInteger: {
             expression: /^[0-9]*$/,
             text: '只能为正整数',
@@ -174,6 +181,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 是否为正整数
         notNull: {
             expression: "^[ ]+$",
             text: '不能为空',
@@ -183,6 +191,7 @@ var data = {
                 return !re.test(str);
             }
         },
+        // 是否为手机号
         isPhone: {
             expression: /^[1][0-9]{10}$/,
             text: '格式错误',
@@ -191,6 +200,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 是否全部为中文
         isAllChinese: {
             expression: /^([\u4E00-\u9FA5]+，?)+$/,
             text: '只能为中文',
@@ -199,6 +209,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 是否含有中文
         isHaveChinese: {
             expression: "[\\u4E00-\\u9FFF]+",
             text: '中含有汉字',
@@ -207,6 +218,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 是否为身份证号码
         isIdCard: {
             expression: [/^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$/, /^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[A-Z])$/],
             text: '输入错误',
@@ -216,6 +228,7 @@ var data = {
                 return re1.test(str) || re2.test(str) ? true : false;
             }
         },
+        // 是否含有特殊字符
         isSpecial: {
             expression: ["~", "`", "!", "@", "#", "$", "%", "^", "&", "*", "{", "}", "[", "]", "(", ")", ":", ";", "'", "|", "\\", "<", ">", "?", "/", "<<", ">>", "||", "//", "administrators", "administrator", "管理员", "系统管理员", "admin", "select", "delete", "update", "insert", "create", "drop", "alter", "trancate"],
             text: '不能包含特殊字符',
@@ -229,6 +242,7 @@ var data = {
                 return true;
             }
         },
+        // 是否为URL
         isUrl: {
             expression: /^((https|http|ftp|rtsp|mms)?:\/\/)[^\s]+/,
             text: '格式错误',
@@ -237,6 +251,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 是否为EMAIL
         isEmail: {
             expression: /^[-_A-Za-z0-9]+@([_A-Za-z0-9]+\.)+[A-Za-z0-9]{2,3}$/,
             text: '格式错误',
@@ -245,6 +260,7 @@ var data = {
                 return re.test(str) ? true : false;
             }
         },
+        // 判断是否为某一类型
         type: function(obj, type) {
             var result = null;
             switch (type) {
@@ -272,6 +288,7 @@ var data = {
             };
             return result;
         },
+        // 数组中是否含有某一字符串
         inArray: function(str, _array) {
             if ($.inArray(str, _array) == -1) {
                 return false
@@ -281,109 +298,162 @@ var data = {
         },
     };
     var _f = {
+        // 检查命名空间
         checkNamespace: function(str, namespace) {
+            // 以传入参数的形式验证命名空间
+            // 防止一个页面中存在多个表单时命名空间冲突
+            // 传入参数     str : 需要验证的字符串
+            //             namespace : 命名空间 (注 : 表单元素不能重名)
             if (_j.inArray(str, namespace)) {
+                // 元素存在是,输出警告,元素已经存在
                 console.error('警告 : 元素重名 [' + str + ']');
             } else {
+                // 不存在时,添加到命名空间中
                 namespace.push(str);
             };
         },
-        initFile: function(data, namespace, events, layouts) {
+        // 初始化表单元素
+        initFile: function(data, namespace, events) {
+            // 初始化所有表单元素
+            // 包含 input(字符串类型) select (选择框类型) checkBox (多选框) radio (单选框) textarea (多行文本列表) button (按钮) tabs (选项卡) file (input 文件上传) date (时间选择器)
+            // 各个元素详细设定 在相关元素中查看\
+            //
+            // 创建files对象 用来保存所有的表单元素
             var files = {};
+            // 遍历data.files中的数组,通过数组中元素的setting属性创建表单元素
             for (var i = 0; i < data.length; i++) {
                 var item = data[i];
+                // 验证元素名称是否在命名空间中
                 _f.checkNamespace(item.name, namespace);
-                files[item.name] = new _t[item.type](item.setting, events, layouts, item.name);
+                // 创建表单元素, 并赋值给files对象
+                files[item.name] = new _t[item.type](item.setting, events);
             };
             return files;
         },
+        // 初始化事件方法
         initEvent: function(data, namespace) {
+            // 初始化AJAX事件,
+            // 
+            // 创建events对象 用来保存所有的AJAX方法
             var events = {};
+            // 遍历data.events中的数组,通过数组中元素的setting属性创建表单AJAX对象
             for (var i = 0; i < data.length; i++) {
                 var item = data[i];
+                // 验证元素名称是否在命名空间中
                 _f.checkNamespace(item.name, namespace);
+                // 创建AJAX对象, 并赋值给events对象
                 events[item.name] = new _e[item.type](item.setting);
             };
             return events;
         },
+        // 初始化模板格式
         initLayout: function(data, namespace) {
+            // 初始化模板元素,
+            // 
+            // 创建layouts对象 用来保存所有的模板元素
             var layouts = {};
+            // 遍历data.layouts中的数组,通过数组中元素的setting属性创建表单AJAX对象
             for (var i = 0; i < data.length; i++) {
                 var item = data[i];
+                // 验证元素名称是否在命名空间中
                 _f.checkNamespace(item.name, namespace);
+                // 创建模板元素, 并赋值给layouts对象
                 layouts[item.name] = new _t[item.type](item.setting);
             };
             return layouts;
         },
+        // 输出HTML
         renderHtml: function($files, $layouts, layoutArray, $this) {
-            // 合并元素
+            // 将模板元素与表单元素合并
             for (var item in $layouts) {
                 if ($layouts.hasOwnProperty(item)) {
                     var element = $layouts[item];
+                    // 将元素中的所有属性浅拷贝到files类型
                     $files[item] = element;
                 }
             };
             var parent = null;
+            // 重新遍历模板数组,找到模板的父级元素
             for (var i = 0; i < layoutArray.length; i++) {
                 var element = layoutArray[i];
                 if (element.setting.parent == 'parent') {
+                    // 检查是否为父级模板
                     parent = element.name;
                     break;
                 };
             };
+            // 找到父级模板元素
             var form = $files[parent];
+            // 准备表单元素元素(将所有元素插入到父级模板中)
             _f.renderLayout(form, $files);
+            // 加载元素到html页面
             $this.append($files[parent].render());
         },
+        // 渲染页面
         renderLayout: function(data, $files) {
+            // 遍历元素,插入到模板中
             for (var i = 0; i < data.options.subset.length; i++) {
                 var element = data.options.subset[i];
                 if ($files[element].constructor() == 'block') {
+                    // 判断如果所选对象为一个模板,递归程序,重新插入
                     _f.renderLayout($files[element], $files);
                 };
+                // 将元素插入到模板中
                 data.append($files[element].render());
             }
         },
+        // 自动调用
         autoEvent: function(event, eventArray) {
             var eventName = null;
+            // 遍历event对象
             for (var i = 0; i < eventArray.length; i++) {
                 var element = eventArray[i];
                 if (element.setting.auto) {
+                    // 如果字段 auto 为 true 证明该事件为需要立即执行的事件,缓存名称,准备调用
                     eventName = element.name;
                     break
                 };
             };
+            // 找到缓存的对象,立即进行执行 (相关内容,查看AJAX对象)
             if (eventName) {
                 event[eventName].perform();
             };
         },
+        // 给表单按钮绑定事件
         bindEventToFile: function(event, file) {
+            // 遍历所有表单元素，为事件绑定表单元素 (只有button元素可以绑定事件)
             for (var item in event) {
                 if (event.hasOwnProperty(item)) {
                     var element = event[item];
+                    // 进行事件绑定, 把表单元素绑定给表单事件
                     element.setFiles(file);
                 }
             }
         },
-        layoutListening: function($layoutEvent, selectData, selectName) {
-            if ($layoutEvent === null) {
-                return null
-            };
-            var event = $layoutEvent.split('?');
-            if (selectName == event[0]) {
-                var judeshowHide = event[1].split('=');
-                if (selectData[judeshowHide[0]] == judeshowHide[1]) {
-                    return true;
-                } else {
-                    return false;
+        // 给模板绑定前台事件 (表单元素控制模板现隐) 
+        bindEventtoLayout: function($layouts, $files) {
+            // 遍历模板
+            for (var layoutItem in $layouts) {
+                if ($layouts.hasOwnProperty(layoutItem)) {
+                    // 缓存模板
+                    var layout = $layouts[layoutItem];
+                    // 如果模板event字段有值,则查找files中是否包含该元素
+                    if (layout.options.event) {
+                        // 格式化出event字段中代表file的字段
+                        var eventName = layout.options.event.split('?')[0];
+                        if ($files.hasOwnProperty(eventName)) {
+                            var file = $files[eventName];
+                            file.setLayoutData(layout);
+                        };
+                    };
                 }
-            } else {
-                return null
             }
-        },
+        }
     }
     var _t = {
+        // input 类型表单元素
         input: function(opt) {
+            // 初始化 html
             var html = '';
             html += '	<div class="files-item">';
             html += '		<label class="label"></label>';
@@ -391,22 +461,40 @@ var data = {
             html += '		<div class="error" style="display:none"></div>';
             html += '	</div>';
             html = $(html);
-            html.find('label').text(opt.label);
+            // 如果出现表单的标注名,则显示标注,否则隐藏标注标签
+            if (opt.label) {
+                html.find('label').text(opt.label);
+            } else {
+                html.find('label').css('display', 'none');
+            };
+            // 缓存html
             this.HTML = html;
+            // 缓存属性值
             this.options = opt;
         },
+        // button类型表单元素
         button: function(opt, events) {
+            // 初始化 html
             this.HTML = $('<div class="files-item"><button></button></div>');
+            // 绑定按钮文字
             this.HTML.find('button').text(opt.label);
+            // 缓存属性值
             this.options = opt;
+            // 缓存事件对象
             this.events = events;
         },
+        // 模板类型
         block: function(opt, files) {
+            // 初始化模板类型
             this.HTML = $('<div class="block' + (opt.className || '') + '"></div>');
+            // 缓存属性值
             this.options = opt;
         },
+        // select 中 option 内容
         selectOption: function(opt, value, nameKey) {
+            // 初始化 html
             this.HTML = $('<option></option>');
+
             this.HTML.text(opt[nameKey]);
             this.HTML.attr('value', value);
             this.data = opt;
@@ -429,7 +517,7 @@ var data = {
                     break;
                 };
             };
-            this.layouts = layouts;
+            this.layouts = [];
             this.objectName = objectName;
         },
     };
@@ -562,20 +650,19 @@ var data = {
         changeLayout: function() {
             var $this = this;
             // $this.layouts
-            for (var item in $this.layouts) {
-                if ($this.layouts.hasOwnProperty(item)) {
-                    var element = $this.layouts[item];
-                    var judes = _f.layoutListening(element.options.event, $this.valueData, $this.objectName);
-                    if (judes === null) {
-                        console.log('未找到layout相关操作对象');
-                    } else if (!judes) {
-                        element.hide();
-                    } else if (!!judes) {
-                        element.show();
-                    }
+            for (var i = 0; i < this.layouts.length; i++) {
+                var layout = this.layouts[i];
+                var condition = layout.options.event.split('?')[1].split('=');
+                if (this.valueData[condition[0]] == condition[1]) {
+                    layout.show();
+                } else {
+                    layout.hide();
                 }
-            }
+            };
         },
+        setLayoutData: function(data) {
+            this.layouts.push(data);
+        }
     };
     _t.selectOption.prototype = {
         render: function() {
@@ -677,8 +764,10 @@ var data = {
         var namespace = [],
             $events = _f.initEvent(options.event, namespace),
             $layouts = _f.initLayout(options.layout, namespace),
-            $files = _f.initFile(options.file, namespace, $events, $layouts);
+            $files = _f.initFile(options.file, namespace, $events);
         _f.bindEventToFile($events, $files);
+        // console.log($files, $layouts);
+        _f.bindEventtoLayout($layouts, $files);
         _f.renderHtml($files, $layouts, options.layout, $this);
         _f.autoEvent($events, options.event);
         return $events;
