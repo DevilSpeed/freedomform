@@ -103,6 +103,16 @@ var data = {
             setItemKey: 'value', // 要赋值的字段对象KEY值
             readonly: false,
         }
+    }, {
+        type: 'textarea',
+        name: 'remark',
+        setting: {
+            filter: [], // 过滤方法 (set value 时进行操作)
+            label: '详情 :', // 表单标签名称
+            displayName: '详情', // 提示信息名称
+            readonly: false, // 是否只读
+            judes: ['notNull'], // 验证条件 (change value 时进行操作)
+        },
     }],
     layout: [{
         type: 'block',
@@ -520,6 +530,26 @@ var data = {
             this.layouts = [];
             this.objectName = objectName;
         },
+        textarea: function(opt) {
+            // 初始化 html
+            var html = '';
+            html += '	<div class="files-item">';
+            html += '		<label class="label"></label>';
+            html += '		<input type="text">';
+            html += '		<div class="error" style="display:none"></div>';
+            html += '	</div>';
+            html = $(html);
+            // 如果出现表单的标注名,则显示标注,否则隐藏标注标签
+            if (opt.label) {
+                html.find('label').text(opt.label);
+            } else {
+                html.find('label').css('display', 'none');
+            };
+            // 缓存html
+            this.HTML = html;
+            // 缓存属性值
+            this.options = opt;
+        }
     };
     _t.input.prototype = {
         // 渲染html
@@ -675,6 +705,69 @@ var data = {
             this.HTML.attr("selected", true);
         }
     };
+    _t.textarea.prototype = {
+        // 渲染html
+        render: function() {
+            var $this = this;
+            $this.HTML.unbind().bind('input propertychange', function() {
+                $this.change($this);
+            });
+            $this.changeReadonly($this.options.readonly);
+            return $this.HTML;
+        },
+        // 获取
+        get: function() {
+            return this.HTML.find('input').val()
+        },
+        // 赋值
+        set: function(data) {
+            this.HTML.find('input').val(data);
+        },
+        // 只读条件 (暂无调用接口,一次性属性)
+        changeReadonly: function(isReadonly) {
+            if (_j.type(isReadonly, 'function')) {
+                this.HTML.find('input').attr("readonly", isReadonly());
+            } else {
+                this.HTML.find('input').attr("readonly", !!isReadonly);
+            }
+        },
+        // 显示ERROR提示框
+        showError: function(data) {
+            this.HTML.find('.error').css('display', 'inline-block').text(data);
+        },
+        // 隐藏ERROR提示框
+        hideError: function() {
+            this.HTML.find('.error').css('display', 'none');
+        },
+        // 当内容改变时,执行事件(元素验证)
+        change: function() {
+            var value = this.get();
+            var $this = this;
+            // 建立提示信息文字
+            var status = null;
+            if ($this.options.judes) {
+                // 获取每一项验证顺序
+                for (var i = 0; i < $this.options.judes.length; i++) {
+                    var item = $this.options.judes[i];
+                    // 进行验证
+                    if (!_j[item].perform(value)) {
+                        // 输出错误信息
+                        status = ($this.options.displayName || '') + _j[item].text;
+                        break;
+                    };
+                }
+            };
+            // 显示错误信息
+            if (status) {
+                $this.showError(status);
+            } else {
+                $this.hideError();
+            }
+        },
+        constructor: function() {
+            return 'input'
+        }
+    }
 
 
     var _e = {
@@ -766,7 +859,6 @@ var data = {
             $layouts = _f.initLayout(options.layout, namespace),
             $files = _f.initFile(options.file, namespace, $events);
         _f.bindEventToFile($events, $files);
-        // console.log($files, $layouts);
         _f.bindEventtoLayout($layouts, $files);
         _f.renderHtml($files, $layouts, options.layout, $this);
         _f.autoEvent($events, options.event);
