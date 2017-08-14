@@ -3,5 +3,7 @@
     "age": "28",
     "phone": "13630985996",
     "type": "2",
-    "remark": "测试"
+    "remark": "测试",
+    "isCheck": true,
+    "declare": "XXXXXXXXX"
 }

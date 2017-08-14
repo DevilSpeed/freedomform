@@ -4,11 +4,11 @@ var data = {
         type: 'ajax',
         name: 'get',
         setting: {
-            url: 'index.json',
-            type: 'GET',
-            data: {},
-            auto: true,
-            useData: true,
+            url: 'index.json', // ajax 的路径
+            type: 'GET', // 支持 GET POST DELETE PUT
+            data: {}, // 传入对象
+            auto: true, // 是否自动
+            useData: true, // 是否使用DATA中对象(待改进)
             beforeEvent: function(data, callback) { // ajax 执行前进行回调
                 callback(data); // 回调函数
             },
@@ -22,25 +22,11 @@ var data = {
             }
         }
     }, {
-        type: 'ajax',
-        name: 'update',
+        type: 'fun',
+        name: 'showValue',
         setting: {
-            url: 'index2.json',
-            type: 'GET',
-            data: {},
-            auto: false,
-            useData: false,
-            beforeEvent: function(data, callback) { // ajax 执行前进行回调
+            event: function(data) { // ajax 执行前进行回调
                 console.log(data);
-                callback(data); // 回调函数
-            },
-            afterEvent: {
-                success: function(data, callback) { // ajax 执行后成功回调
-                    callback(data); // 回调函数
-                },
-                error: function(data, callback) { // ajax 执行后失败回调
-                    callback(data); // 回调函数
-                },
             }
         }
     }],
@@ -78,8 +64,8 @@ var data = {
         name: 'updateButton',
         type: 'button',
         setting: {
-            label: 'OK',
-            clickEvent: 'update',
+            label: '获取全部表单值',
+            clickEvent: 'showValue',
         },
     }, {
         name: 'type',
@@ -87,11 +73,11 @@ var data = {
         setting: {
             label: '类别 :', // 表单标签名称
             displayName: '类别', // 提示信息名称
+            setItemKey: 'value', // 要赋值的字段对象KEY值
+            showItemKey: 'name', // 要显示的字段对象KEY值
             // defaultValue: null,
             defaultValue: 0,
-            // defaultValue: "name:类别2",
-            // defaultValue: "value:1",
-            // 数组下标 或 null 或 对应KEY value 值 
+            // 赋予默认值,可直接复制数组下标或 根据 setItemKey 的对象名称赋值; 区别方法, 字符串 / 数字
             data: [{
                 name: '类别1',
                 value: '1',
@@ -99,8 +85,6 @@ var data = {
                 name: '类别2',
                 value: '2',
             }],
-            showItemKey: 'name', // 要显示的字段对象KEY值
-            setItemKey: 'value', // 要赋值的字段对象KEY值
             readonly: false,
         }
     }, {
@@ -113,6 +97,44 @@ var data = {
             readonly: false, // 是否只读
             judes: ['notNull'], // 验证条件 (change value 时进行操作)
         },
+    }, {
+        type: 'checkBox',
+        name: 'isCheck',
+        setting: {
+            label: '显示模板',
+            defaultValue: false, // 可选值为 true 或 false
+            readonly: false,
+        }
+    }, {
+        type: 'textarea',
+        name: 'declare',
+        setting: {
+            filter: [], // 过滤方法 (set value 时进行操作)
+            label: '简介 :', // 表单标签名称
+            displayName: '简介', // 提示信息名称
+            readonly: true, // 是否只读
+            judes: ['notNull'], // 验证条件 (change value 时进行操作)
+        }
+    }, {
+        type: 'radio',
+        name: 'sex',
+        setting: {
+            label: '性别 :', // 表单标签名称
+            displayName: '性别', // 提示信息名称
+            setItemKey: 'value', // 要赋值的字段对象KEY值
+            showItemKey: 'name', // 要显示的字段对象KEY值
+            // defaultValue: null,
+            defaultValue: 0,
+            // 赋予默认值,可直接复制数组下标或 根据 setItemKey 的对象名称赋值; 区别方法, 字符串 / 数字
+            data: [{
+                name: '男',
+                value: '1',
+            }, {
+                name: 'nv',
+                value: '2',
+            }],
+            readonly: false,
+        }
     }],
     layout: [{
         type: 'block',
@@ -121,8 +143,12 @@ var data = {
             className: null,
             state: 'show',
             event: null,
-            subset: ['name', 'type', 'box1', 'box2', 'updateButton'],
+            subset: ['name', 'type', 'box1', 'box2', 'isCheck', 'box3', 'declare', 'updateButton'],
             parent: 'parent',
+            title: {
+                text: '标题',
+                className: 'titleClass'
+            }
         },
     }, {
         type: 'block',
@@ -134,6 +160,10 @@ var data = {
             event: 'type?value=1', // 模板展示方法
             subset: ['age'],
             parent: 'box',
+            title: {
+                text: 'select 控制表单现隐 : 表单1',
+                className: 'titleClass',
+            }
         },
     }, {
         type: 'block',
@@ -145,6 +175,24 @@ var data = {
             event: 'type?value=2', // 模板展示方法
             subset: ['phone'],
             parent: 'box',
+            title: {
+                text: 'select 控制表单现隐 : 表单2',
+                className: 'titleClass',
+            }
+        },
+    }, {
+        type: 'block',
+        name: 'box3',
+        setting: {
+            className: null,
+            state: 'show',
+            event: 'isCheck?true',
+            subset: [],
+            parent: 'parent',
+            title: {
+                text: 'CheckBox控制模板显示隐藏',
+                className: 'titleClass',
+            }
         },
     }]
 };
@@ -306,9 +354,68 @@ var data = {
                 return true
             }
         },
+        isEqual: function(a, b) {
+            //如果a和b本来就全等
+            if (a === b) {
+                //判断是否为0和-0
+                return a !== 0 || 1 / a === 1 / b;
+            }
+            //判断是否为null和undefined
+            if (a == null || b == null) {
+                return a === b;
+            }
+            //接下来判断a和b的数据类型
+            var A = toString.call(a),
+                B = toString.call(b);
+            //如果数据类型不相等，则返回false
+            if (A !== B) {
+                return false;
+            }
+            //如果数据类型相等，再根据不同数据类型分别判断
+            switch (A) {
+                case '[object RegExp]':
+                case '[object String]':
+                    //进行字符串转换比较
+                    return '' + a === '' + b;
+                case '[object Number]':
+                    //进行数字转换比较,判断是否为NaN
+                    if (+a !== +a) {
+                        return +b !== +b;
+                    }
+                    //判断是否为0或-0
+                    return +a === 0 ? 1 / +a === 1 / b : +a === +b;
+                case '[object Date]':
+                case '[object Boolean]':
+                    return +a === +b;
+            }
+            //如果是对象类型
+            if (A == '[object Object]') {
+                //获取a和b的属性长度
+                var propsA = Object.getOwnPropertyNames(a),
+                    propsB = Object.getOwnPropertyNames(b);
+                if (propsA.length != propsB.length) {
+                    return false;
+                }
+                for (var i = 0; i < propsA.length; i++) {
+                    var propName = propsA[i];
+                    //如果对应属性对应值不相等，则返回false
+                    if (a[propName] !== b[propName]) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            //如果是数组类型
+            if (A == '[object Array]') {
+                if (a.toString() == b.toString()) {
+                    return true;
+                }
+                return false;
+            }
+        },
     };
     var _f = {
-        // 检查命名空间
+        // 检查命名空间 (检查元素是否重名,在空间内,所属元素不能重名)
         checkNamespace: function(str, namespace) {
             // 以传入参数的形式验证命名空间
             // 防止一个页面中存在多个表单时命名空间冲突
@@ -336,7 +443,7 @@ var data = {
                 // 验证元素名称是否在命名空间中
                 _f.checkNamespace(item.name, namespace);
                 // 创建表单元素, 并赋值给files对象
-                files[item.name] = new _t[item.type](item.setting, events);
+                files[item.name] = new _t[item.type](item.setting, events, item.name);
             };
             return files;
         },
@@ -404,7 +511,7 @@ var data = {
             // 遍历元素,插入到模板中
             for (var i = 0; i < data.options.subset.length; i++) {
                 var element = data.options.subset[i];
-                if ($files[element].constructor() == 'block') {
+                if ($files[element].constructor == 'block') {
                     // 判断如果所选对象为一个模板,递归程序,重新插入
                     _f.renderLayout($files[element], $files);
                 };
@@ -458,8 +565,18 @@ var data = {
                     };
                 }
             }
-        }
-    }
+        },
+        newGuid: function() {
+            var guid = '';
+            for (var i = 1; i <= 32; i++) {
+                var n = Math.floor(Math.random() * 16.0).toString(16);
+                guid += n;
+                if ((i == 8) || (i == 12) || (i == 16) || (i == 20))
+                    guid += '-';
+            }
+            return guid;
+        },
+    };
     var _t = {
         // input 类型表单元素
         input: function(opt) {
@@ -481,61 +598,15 @@ var data = {
             this.HTML = html;
             // 缓存属性值
             this.options = opt;
+            this.constructor = 'input';
         },
-        // button类型表单元素
-        button: function(opt, events) {
-            // 初始化 html
-            this.HTML = $('<div class="files-item"><button></button></div>');
-            // 绑定按钮文字
-            this.HTML.find('button').text(opt.label);
-            // 缓存属性值
-            this.options = opt;
-            // 缓存事件对象
-            this.events = events;
-        },
-        // 模板类型
-        block: function(opt, files) {
-            // 初始化模板类型
-            this.HTML = $('<div class="block' + (opt.className || '') + '"></div>');
-            // 缓存属性值
-            this.options = opt;
-        },
-        // select 中 option 内容
-        selectOption: function(opt, value, nameKey) {
-            // 初始化 html
-            this.HTML = $('<option></option>');
-
-            this.HTML.text(opt[nameKey]);
-            this.HTML.attr('value', value);
-            this.data = opt;
-        },
-        select: function(opt, events, layouts, objectName) {
-            this.HTML = $('<div class="files-item"><select></select></div>');
-            this.options = opt;
-            this.items = [];
-            for (var i = 0; i < this.options.data.length; i++) {
-                var item = this.options.data[i];
-                this.items[i] = new _t.selectOption(item, i, this.options.showItemKey);
-                this.HTML.find('select').append(this.items[i].render());
-            };
-            this.valueData = {};
-            for (var d = 0; d < this.items.length; d++) {
-                var element = this.items[d];
-                if (this.options.defaultValue == d) {
-                    element.setSelected();
-                    this.valueData = this.options.data[d];
-                    break;
-                };
-            };
-            this.layouts = [];
-            this.objectName = objectName;
-        },
+        // 多行文本框类型
         textarea: function(opt) {
             // 初始化 html
             var html = '';
             html += '	<div class="files-item">';
             html += '		<label class="label"></label>';
-            html += '		<input type="text">';
+            html += '		<textarea style="border:1px solid #ccc;"></textarea>';
             html += '		<div class="error" style="display:none"></div>';
             html += '	</div>';
             html = $(html);
@@ -549,7 +620,104 @@ var data = {
             this.HTML = html;
             // 缓存属性值
             this.options = opt;
-        }
+            this.constructor = 'textarea';
+        },
+        // button类型表单元素
+        button: function(opt, events) {
+            // 初始化 html
+            this.HTML = $('<div class="files-item"><button></button></div>');
+            // 绑定按钮文字
+            this.HTML.find('button').text(opt.label);
+            // 缓存属性值
+            this.options = opt;
+            // 缓存事件对象
+            this.events = events;
+            this.constructor = 'button';
+        },
+        // 模板类型
+        block: function(opt, files) {
+            // 初始化模板类型
+            this.HTML = $('<div class="block' + (opt.className || '') + '"></div>');
+            if (opt.title) {
+                this.TITLE = $('<div class="' + opt.title.className + '">' + opt.title.text + '</div>');
+                this.append(this.TITLE);
+            };
+            // 缓存属性值
+            this.options = opt;
+            this.constructor = 'block';
+        },
+        // select 中 option 内容
+        selectOption: function(opt, value, nameKey) {
+            // 初始化 html
+            this.HTML = $('<option></option>');
+            // 输出显示名称
+            this.HTML.text(opt[nameKey]);
+            // 给定的value赋值
+            this.HTML.attr('value', value);
+            // 缓存属性值
+            this.data = opt;
+            this.constructor = 'selectOption';
+        },
+        // select 类型
+        select: function(opt, events, objectName) {
+            // 初始化 html
+            this.HTML = $('<div class="files-item"><select></select></div>');
+            // 缓存属性值
+            this.options = opt;
+            // 建立option列表数组
+            this.items = [];
+            for (var i = 0; i < this.options.data.length; i++) {
+                var item = this.options.data[i];
+                // 为每一行数据生成optionSide
+                this.items[i] = new _t.selectOption(item, i, this.options.showItemKey);
+                // 输出到Select
+                this.HTML.find('select').append(this.items[i].render());
+            };
+            // 缓存对象结果类型
+            this.valueData = {};
+            // 找到默认值,为所选默认值添加属性
+            for (var d = 0; d < this.items.length; d++) {
+                var element = this.items[d];
+                if (this.options.defaultValue == d) {
+                    element.setSelected();
+                    this.valueData = this.options.data[d];
+                    break;
+                };
+            };
+            // 缓存模板数据
+            this.layouts = [];
+            // 缓存select对应元素名称
+            this.objectName = objectName;
+            this.constructor = 'select';
+        },
+        // 多选框类型
+        checkBox: function(opt, events, objectName) {
+            // 初始化 html
+            this.HTML = $('<div class="files-item"><input name="' + _f.newGuid() + '" type="checkBox"><span></span></div>');
+            // 缓存属性值
+            if (opt.label) {
+                this.HTML.find('span').text(opt.label);
+            };
+            this.options = opt;
+            this.objectName = objectName;
+            this.constructor = 'checkBox';
+            this.layouts = [];
+        },
+        // 单选框元素
+        inputRadio: function(opt, nameKey) {
+            this.HTML = $('<div><input type="radio"  name="' + nameKey + '" /><span></span></div>');
+            // 缓存属性值
+            if (opt.label) {
+                this.HTML.find('span').text(opt.label);
+            };
+            this.data = opt;
+            this.constructor = 'inputRadio';
+        },
+        // 单选框
+        radio: function(opt, events, objectName) {
+            this.objectName = objectName;
+
+        },
     };
     _t.input.prototype = {
         // 渲染html
@@ -603,106 +771,13 @@ var data = {
                     };
                 }
             };
-            // 显示错误信息
             if (status) {
+                // 显示错误信息
                 $this.showError(status);
             } else {
+                // 隐藏错误信息
                 $this.hideError();
             }
-        },
-        constructor: function() {
-            return 'input'
-        }
-    };
-    _t.button.prototype = {
-        // 初始化表单条目
-        render: function() {
-            var $this = this;
-            $this.HTML.unbind().bind('click', function() {
-                $this.events[$this.options.clickEvent].perform();
-            });
-            return $this.HTML;
-        },
-        constructor: function() {
-            return 'button'
-        }
-    };
-    _t.block.prototype = {
-        render: function() {
-            if (this.options.state == 'show') {
-                this.show();
-            } else {
-                this.hide();
-            };
-            return this.HTML;
-        },
-        append: function(data) {
-            this.HTML.append(data);
-        },
-        show: function() {
-            this.HTML.css('display', 'block');
-        },
-        hide: function() {
-            this.HTML.css('display', 'none');
-        },
-        constructor: function() {
-            return 'block'
-        }
-    };
-    _t.select.prototype = {
-        render: function() {
-            var $this = this;
-            $this.HTML.find('select').change(function() {
-                var index = $this.HTML.find('select').get(0).selectedIndex;
-                $this.change(index);
-            });
-            return $this.HTML;
-        },
-        change: function(index) {
-            this.valueData = this.options.data[index];
-            this.changeLayout();
-        },
-        get: function() {
-            return this.valueData;
-        },
-        set: function(value) {
-            var key = this.options.setItemKey;
-            for (var i = 0; i < this.options.data.length; i++) {
-                var element = this.options.data[i];
-                if (element[key] == value) {
-                    this.items[i].setSelected();
-                    this.valueData = this.items[i].data;
-                    this.changeLayout();
-                    break;
-                };
-            }
-        },
-        changeLayout: function() {
-            var $this = this;
-            // $this.layouts
-            for (var i = 0; i < this.layouts.length; i++) {
-                var layout = this.layouts[i];
-                var condition = layout.options.event.split('?')[1].split('=');
-                if (this.valueData[condition[0]] == condition[1]) {
-                    layout.show();
-                } else {
-                    layout.hide();
-                }
-            };
-        },
-        setLayoutData: function(data) {
-            this.layouts.push(data);
-        }
-    };
-    _t.selectOption.prototype = {
-        render: function() {
-            return this.HTML;
-        },
-        get: function() {
-            return this.data;
-        },
-        setSelected: function() {
-            this.HTML.attr("selected", true);
         }
     };
     _t.textarea.prototype = {
@@ -717,18 +792,18 @@ var data = {
         },
         // 获取
         get: function() {
-            return this.HTML.find('input').val()
+            return this.HTML.find('textarea').val()
         },
         // 赋值
         set: function(data) {
-            this.HTML.find('input').val(data);
+            this.HTML.find('textarea').val(data);
         },
         // 只读条件 (暂无调用接口,一次性属性)
         changeReadonly: function(isReadonly) {
             if (_j.type(isReadonly, 'function')) {
-                this.HTML.find('input').attr("readonly", isReadonly());
+                this.HTML.find('textarea').attr("readonly", isReadonly());
             } else {
-                this.HTML.find('input').attr("readonly", !!isReadonly);
+                this.HTML.find('textarea').attr("readonly", !!isReadonly);
             }
         },
         // 显示ERROR提示框
@@ -763,15 +838,161 @@ var data = {
             } else {
                 $this.hideError();
             }
-        },
-        constructor: function() {
-            return 'input'
         }
+    };
+    _t.button.prototype = {
+        // 初始化表单条目
+        render: function() {
+            var $this = this;
+            // 为按钮绑定事件
+            $this.HTML.unbind().bind('click', function() {
+                $this.events[$this.options.clickEvent].perform();
+            });
+            return $this.HTML;
+        }
+    };
+    _t.block.prototype = {
+        // 输出模板类型
+        render: function() {
+            // 检查默认值中设置的显示隐藏
+            if (this.options.state == 'show') {
+                this.show();
+            } else {
+                this.hide();
+            };
+            return this.HTML;
+        },
+        // 封装添加事件,为元素插入做准备
+        append: function(data) {
+            this.HTML.append(data);
+        },
+        // 显示调用事件
+        show: function() {
+            this.HTML.css('display', 'block');
+        },
+        // 隐藏调用事件
+        hide: function() {
+            this.HTML.css('display', 'none');
+        }
+    };
+    _t.select.prototype = {
+        // 渲染输出方法
+        render: function() {
+            var $this = this;
+            // 为模板绑定change事件,实现数据关联
+            $this.HTML.find('select').change(function() {
+                var index = $this.HTML.find('select').get(0).selectedIndex;
+                $this.change(index);
+            });
+            return $this.HTML;
+        },
+        // change 时,改变数据的默认值
+        change: function(index) {
+            this.valueData = this.options.data[index];
+            this.changeLayout();
+        },
+        // 获取所选对象,以对象形式呈现,完整反馈select所选对象,
+        get: function() {
+            return this.valueData;
+        },
+        // 赋值 根据设置中的 setItemKey 属性 关联类型变换
+        set: function(value) {
+            var key = this.options.setItemKey;
+            for (var i = 0; i < this.options.data.length; i++) {
+                var element = this.options.data[i];
+                if (element[key] == value) {
+                    this.items[i].setSelected();
+                    this.valueData = this.items[i].data;
+                    this.changeLayout();
+                    break;
+                };
+            }
+        },
+        changeLayout: function() {
+            var $this = this;
+            // $this.layouts
+            for (var i = 0; i < this.layouts.length; i++) {
+                var layout = this.layouts[i];
+                var condition = layout.options.event.split('?')[1].split('=');
+                if (this.valueData[condition[0]] == condition[1]) {
+                    layout.show();
+                } else {
+                    layout.hide();
+                }
+            };
+        },
+        setLayoutData: function(data) {
+            this.layouts.push(data);
+        },
+    };
+    _t.selectOption.prototype = {
+        render: function() {
+            return this.HTML;
+        },
+        get: function() {
+            return this.data;
+        },
+        setSelected: function() {
+            this.HTML.attr("selected", true);
+        }
+    };
+    _t.checkBox.prototype = {
+        render: function() {
+            var $this = this;
+            $this.HTML.find('input').change(function() {
+
+                $this.change();
+            });
+            return this.HTML;
+        },
+        get: function() {
+            return this.HTML.find('input').attr("checked") == 'checked';
+        },
+        set: function(data) {
+            console.log(data);
+            if (data === 'false' || data === false) {
+                this.HTML.find('input').removeAttr("checked");
+                this.changeLayout();
+            } else if (data === 'true' || data === true) {
+                this.HTML.find('input').attr("checked", 'true');
+                this.changeLayout();
+            } else {
+                console.log(this.objectName + ': 遇到了一个未知类型 (checkBox 仅支持 布尔值 或 "true"/"false" )');
+            }
+        },
+        change: function() {
+            var checked = this.HTML.find('input').attr("checked") == 'checked';
+            if (checked) {
+                this.HTML.find('input').removeAttr("checked");
+            } else {
+                this.HTML.find('input').attr("checked", 'true');
+            };
+            this.changeLayout();
+            // 更改模板
+        },
+        setLayoutData: function(data) {
+            this.layouts.push(data);
+        },
+        changeLayout: function() {
+            var $this = this;
+            // $this.layouts
+            for (var i = 0; i < this.layouts.length; i++) {
+                var layout = $this.layouts[i];
+                var condition = layout.options.event.split('?')[1];
+                var value = $this.get().toString();
+                if (condition == value) {
+                    layout.show();
+                } else {
+                    layout.hide();
+                };
+            };
+        },
+    };
+    _t.inputRadio.prototype = {
+
     }
-
-
     var _e = {
-        default: function(data, callback) { // ajax 执行前进行回调
+        defaultEvent: function(data, callback) { // ajax 执行前进行回调
             callback(data); // 回调函数
         },
         ajax: function(opt) {
@@ -781,15 +1002,18 @@ var data = {
                 data: {},
                 auto: false,
                 useData: true,
-                beforeEvent: _e.default,
+                beforeEvent: _e.defaultEvent,
                 afterEvent: {
-                    success: _e.default,
-                    error: _e.default,
+                    success: _e.defaultEvent,
+                    error: _e.defaultEvent,
                 }
             };
             this.files = {};
             this.result = null;
             this.options = $.extend({}, this.defaults, opt);
+        },
+        fun: function(opt) {
+            this.event = opt.event;
         },
     };
     _e.ajax.prototype = {
@@ -844,13 +1068,45 @@ var data = {
                     try {
                         data[item] = element.get();
                     } catch (error) {
-                        console.log(element);
+                        if (element.constructor != 'button' && element.constructor != 'block') {
+                            console.log(element + ':改对象没有取值方法');
+                        } else {
+                            // 忽略模板类型及按钮类型的取值方法
+                        }
                     }
                 }
             };
             return data;
         }
     };
+    _e.fun.prototype = {
+        perform: function() {
+            var $this = this;
+            this.event($this.getFielsValue());
+        },
+        setFiles: function(data) {
+            this.files = data;
+        },
+        getFielsValue: function() {
+            var data = {};
+            for (var item in this.files) {
+                if (this.files.hasOwnProperty(item)) {
+                    var element = this.files[item];
+
+                    try {
+                        data[item] = element.get();
+                    } catch (error) {
+                        if (element.constructor != 'button' && element.constructor != 'block') {
+                            console.log(element + ':改对象没有取值方法');
+                        } else {
+                            // 忽略模板类型及按钮类型的取值方法
+                        }
+                    }
+                }
+            };
+            return data;
+        }
+    }
 
     $.fn.freedomForm = function(options) {
         var $this = this;
@@ -858,6 +1114,7 @@ var data = {
             $events = _f.initEvent(options.event, namespace),
             $layouts = _f.initLayout(options.layout, namespace),
             $files = _f.initFile(options.file, namespace, $events);
+        console.log(namespace);
         _f.bindEventToFile($events, $files);
         _f.bindEventtoLayout($layouts, $files);
         _f.renderHtml($files, $layouts, options.layout, $this);
@@ -867,3 +1124,40 @@ var data = {
 })(jQuery, window, document);
 var _data = $('#CRM').freedomForm(data);
 console.log(_data);
+
+// 问题
+// select的默认值支持两种形式
+// 目前只完成了 下标形式的默认值赋值,
+// 待完成的是以字段方式判断默认值的方法
+
+// 问题
+// url 方法需要在before中回调并显示出来
+
+// 问题
+// 初始获取值时,应寻找空间,缓存默认值
+
+// 问题 
+// select 3级联动
+
+// 问题
+// 增加所有方法属性默认值
+
+// 问题
+// date事件,方法,及设置
+
+// 问题
+// list 对象事件处理方法
+
+// 问题
+// form 嵌套 ();
+//
+// 新建模板类型,为 list 或 form; 支持原有的layout方法
+// list 类型,默认带统一增加按钮和某一元素的删除按钮
+// list --> item --> element --> deleteButton
+//                   addButton
+// setValue
+// getValue
+//
+// form 类型,每次调用自动生成子集表单,不与父级表单元素关联,
+// form 元素返回值类型,只有setValue 与 getValue (不返回EVENT对象,但向父级中插入该元素的取值方法);
+// 其他方法与父级统一
