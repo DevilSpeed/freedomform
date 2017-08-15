@@ -130,7 +130,7 @@ var data = {
                 name: '男',
                 value: '1',
             }, {
-                name: 'nv',
+                name: '女',
                 value: '2',
             }],
             readonly: false,
@@ -143,7 +143,7 @@ var data = {
             className: null,
             state: 'show',
             event: null,
-            subset: ['name', 'type', 'box1', 'box2', 'isCheck', 'box3', 'declare', 'updateButton'],
+            subset: ['name', 'type', 'box1', 'box2', 'isCheck', 'box3', 'declare', 'sex', 'updateButton'],
             parent: 'parent',
             title: {
                 text: '标题',
@@ -579,7 +579,7 @@ var data = {
     };
     var _t = {
         // input 类型表单元素
-        input: function(opt) {
+        input: function(opt, events, objectName) {
             // 初始化 html
             var html = '';
             html += '	<div class="files-item">';
@@ -598,10 +598,11 @@ var data = {
             this.HTML = html;
             // 缓存属性值
             this.options = opt;
+            this.objectName = objectName;
             this.constructor = 'input';
         },
         // 多行文本框类型
-        textarea: function(opt) {
+        textarea: function(opt, events, objectName) {
             // 初始化 html
             var html = '';
             html += '	<div class="files-item">';
@@ -620,10 +621,11 @@ var data = {
             this.HTML = html;
             // 缓存属性值
             this.options = opt;
+            this.objectName = objectName;
             this.constructor = 'textarea';
         },
         // button类型表单元素
-        button: function(opt, events) {
+        button: function(opt, events, objectName) {
             // 初始化 html
             this.HTML = $('<div class="files-item"><button></button></div>');
             // 绑定按钮文字
@@ -633,6 +635,7 @@ var data = {
             // 缓存事件对象
             this.events = events;
             this.constructor = 'button';
+            this.objectName = objectName;
         },
         // 模板类型
         block: function(opt, files) {
@@ -704,18 +707,48 @@ var data = {
             this.layouts = [];
         },
         // 单选框元素
-        inputRadio: function(opt, nameKey) {
-            this.HTML = $('<div><input type="radio"  name="' + nameKey + '" /><span></span></div>');
+        inputRadio: function(opt, value, nameKey, objectName, parent) {
+            this.HTML = $('<div><input type="radio"  name="' + objectName + '" /><span></span></div>');
             // 缓存属性值
-            if (opt.label) {
-                this.HTML.find('span').text(opt.label);
+
+            if (opt[nameKey]) {
+                this.HTML.find('span').text(opt[nameKey]);
             };
             this.data = opt;
+            this.parent = parent;
             this.constructor = 'inputRadio';
         },
         // 单选框
         radio: function(opt, events, objectName) {
+            // 初始化 html
+            this.HTML = $('<div class="files-item"></div>');
+            // 缓存属性值
+            this.options = opt;
+            // 建立option列表数组
+            this.items = [];
+            for (var i = 0; i < this.options.data.length; i++) {
+                var item = this.options.data[i];
+                // 为每一行数据生成optionSide
+                this.items[i] = new _t.inputRadio(item, i, this.options.showItemKey, objectName, this);
+                // 输出到Select
+                this.HTML.append(this.items[i].render());
+            };
+            // 缓存对象结果类型
+            this.valueData = {};
+            // 找到默认值,为所选默认值添加属性
+            for (var d = 0; d < this.items.length; d++) {
+                var element = this.items[d];
+                if (this.options.defaultValue == d) {
+                    element.setChecked();
+                    this.valueData = this.options.data[d];
+                    break;
+                };
+            };
+            // 缓存模板数据
+            this.layouts = [];
+            // 缓存select对应元素名称
             this.objectName = objectName;
+            this.constructor = 'radio';
 
         },
     };
@@ -989,8 +1022,60 @@ var data = {
         },
     };
     _t.inputRadio.prototype = {
-
-    }
+        render: function() {
+            var $this = this;
+            this.HTML.click(function() {
+                $this.parent.change($this);
+            });
+            return this.HTML;
+        },
+        get: function() {
+            return this.data;
+        },
+        setChecked: function() {
+            this.HTML.find('input').attr("checked", true);
+        },
+        removeChecked: function() {
+            this.HTML.find('input').attr("checked", false);
+        },
+    };
+    _t.radio.prototype = {
+        // 渲染输出方法
+        render: function() {
+            var $this = this;
+            // 为模板绑定change事件,实现数据关联
+            return $this.HTML;
+        },
+        get: function() {
+            return this.valueData;
+        },
+        set: function(value) {
+            var key = this.options.setItemKey;
+            for (var i = 0; i < this.options.data.length; i++) {
+                var element = this.options.data[i];
+                if (element[key] == value) {
+                    this.items[i].setChecked();
+                    this.valueData = this.items[i].data;
+                    // 改变模板
+                    break;
+                };
+            }
+        },
+        setLayoutData: function(data) {
+            this.layouts.push(data);
+        },
+        change: function(subset) {
+            this.valueData = subset.data;
+            for (var i = 0; i < this.items.length; i++) {
+                var item = this.items[i];
+                if (_j.isEqual(item.data, this.valueData)) {
+                    item.setChecked();
+                } else {
+                    item.removeChecked();
+                }
+            };
+        },
+    };
     var _e = {
         defaultEvent: function(data, callback) { // ajax 执行前进行回调
             callback(data); // 回调函数
@@ -1092,12 +1177,12 @@ var data = {
             for (var item in this.files) {
                 if (this.files.hasOwnProperty(item)) {
                     var element = this.files[item];
-
                     try {
                         data[item] = element.get();
                     } catch (error) {
                         if (element.constructor != 'button' && element.constructor != 'block') {
-                            console.log(element + ':改对象没有取值方法');
+                            console.log(element);
+                            console.log(element.constructor + ':' + element.objectName + ' --> 该对象没有取值方法');
                         } else {
                             // 忽略模板类型及按钮类型的取值方法
                         }
@@ -1144,9 +1229,6 @@ console.log(_data);
 
 // 问题
 // date事件,方法,及设置
-
-// 问题
-// list 对象事件处理方法
 
 // 问题
 // form 嵌套 ();
