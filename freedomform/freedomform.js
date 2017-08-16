@@ -1,201 +1,6 @@
 var Api = common;
-var data = {
-    event: [{
-        type: 'ajax',
-        name: 'get',
-        setting: {
-            url: 'index.json', // ajax 的路径
-            type: 'GET', // 支持 GET POST DELETE PUT
-            data: {}, // 传入对象
-            auto: true, // 是否自动
-            useData: true, // 是否使用DATA中对象(待改进)
-            beforeEvent: function(data, callback) { // ajax 执行前进行回调
-                callback(data); // 回调函数
-            },
-            afterEvent: {
-                success: function(data, callback) { // ajax 执行后成功回调
-                    callback(data); // 回调函数
-                },
-                error: function(data, callback) { // ajax 执行后失败回调
-                    callback(data); // 回调函数
-                },
-            }
-        }
-    }, {
-        type: 'fun',
-        name: 'showValue',
-        setting: {
-            event: function(data) { // ajax 执行前进行回调
-                console.log(data);
-            }
-        }
-    }],
-    file: [{
-        type: 'input',
-        name: 'name',
-        setting: {
-            filter: [], // 过滤方法 (set value 时进行操作)
-            label: '姓名 :', // 表单标签名称
-            displayName: '姓名', // 提示信息名称
-            readonly: true, // 是否只读
-            judes: ['notNull'], // 验证条件 (change value 时进行操作)
-        },
-    }, {
-        type: 'input',
-        name: 'phone',
-        setting: {
-            filter: [], // 过滤方法 (set value 时进行操作)
-            label: '电话 :', // 表单标签名称
-            displayName: '电话', // 提示信息名称
-            readonly: false, // 是否只读
-            judes: ['notNull', 'isPhone'], // 验证条件 (change value 时进行操作)
-        },
-    }, {
-        type: 'input',
-        name: 'age',
-        setting: {
-            filter: [], // 过滤方法 (set value 时进行操作)
-            label: '年龄 :', // 表单标签名称
-            displayName: '年龄', // 提示信息名称
-            readonly: false, // 是否只读
-            judes: ['notNull', 'isInteger'], // 验证条件 (change value 时进行操作)
-        },
-    }, {
-        name: 'updateButton',
-        type: 'button',
-        setting: {
-            label: '获取全部表单值',
-            clickEvent: 'showValue',
-        },
-    }, {
-        name: 'type',
-        type: 'select',
-        setting: {
-            label: '类别 :', // 表单标签名称
-            displayName: '类别', // 提示信息名称
-            setItemKey: 'value', // 要赋值的字段对象KEY值
-            showItemKey: 'name', // 要显示的字段对象KEY值
-            // defaultValue: null,
-            defaultValue: 0,
-            // 赋予默认值,可直接复制数组下标或 根据 setItemKey 的对象名称赋值; 区别方法, 字符串 / 数字
-            data: [{
-                name: '类别1',
-                value: '1',
-            }, {
-                name: '类别2',
-                value: '2',
-            }],
-            readonly: false,
-        }
-    }, {
-        type: 'textarea',
-        name: 'remark',
-        setting: {
-            filter: [], // 过滤方法 (set value 时进行操作)
-            label: '详情 :', // 表单标签名称
-            displayName: '详情', // 提示信息名称
-            readonly: false, // 是否只读
-            judes: ['notNull'], // 验证条件 (change value 时进行操作)
-        },
-    }, {
-        type: 'checkBox',
-        name: 'isCheck',
-        setting: {
-            label: '显示模板',
-            defaultValue: false, // 可选值为 true 或 false
-            readonly: false,
-        }
-    }, {
-        type: 'textarea',
-        name: 'declare',
-        setting: {
-            filter: [], // 过滤方法 (set value 时进行操作)
-            label: '简介 :', // 表单标签名称
-            displayName: '简介', // 提示信息名称
-            readonly: true, // 是否只读
-            judes: ['notNull'], // 验证条件 (change value 时进行操作)
-        }
-    }, {
-        type: 'radio',
-        name: 'sex',
-        setting: {
-            label: '性别 :', // 表单标签名称
-            displayName: '性别', // 提示信息名称
-            setItemKey: 'value', // 要赋值的字段对象KEY值
-            showItemKey: 'name', // 要显示的字段对象KEY值
-            // defaultValue: null,
-            defaultValue: 0,
-            // 赋予默认值,可直接复制数组下标或 根据 setItemKey 的对象名称赋值; 区别方法, 字符串 / 数字
-            data: [{
-                name: '男',
-                value: '1',
-            }, {
-                name: '女',
-                value: '2',
-            }],
-            readonly: false,
-        }
-    }],
-    layout: [{
-        type: 'block',
-        name: 'box',
-        setting: {
-            className: null,
-            state: 'show',
-            event: null,
-            subset: ['name', 'type', 'box1', 'box2', 'isCheck', 'box3', 'declare', 'sex', 'updateButton'],
-            parent: 'parent',
-            title: {
-                text: '标题',
-                className: 'titleClass'
-            }
-        },
-    }, {
-        type: 'block',
-        name: 'box1',
-        setting: {
-            className: null,
-            template: null,
-            state: 'show',
-            event: 'type?value=1', // 模板展示方法
-            subset: ['age'],
-            parent: 'box',
-            title: {
-                text: 'select 控制表单现隐 : 表单1',
-                className: 'titleClass',
-            }
-        },
-    }, {
-        type: 'block',
-        name: 'box2',
-        setting: {
-            className: null,
-            template: null,
-            state: 'hide',
-            event: 'type?value=2', // 模板展示方法
-            subset: ['phone'],
-            parent: 'box',
-            title: {
-                text: 'select 控制表单现隐 : 表单2',
-                className: 'titleClass',
-            }
-        },
-    }, {
-        type: 'block',
-        name: 'box3',
-        setting: {
-            className: null,
-            state: 'show',
-            event: 'isCheck?true',
-            subset: [],
-            parent: 'parent',
-            title: {
-                text: 'CheckBox控制模板显示隐藏',
-                className: 'titleClass',
-            }
-        },
-    }]
-};
+
+
 
 (function($, win, doc, undefined) {
     // 定义错误提示信息
@@ -566,6 +371,23 @@ var data = {
                 }
             }
         },
+        bindFileRelevancy: function($files) {
+            for (var fileItem in $files) {
+                if ($files.hasOwnProperty(fileItem)) {
+                    // 缓存模板
+                    var file = $files[fileItem];
+                    // 如果模板event字段有值,则查找files中是否包含该元素
+                    if (file.options.relevancyEvent) {
+                        // 格式化出event字段中代表file的字段
+                        var eventName = file.options.relevancyEvent.split('=>')[0];
+                        if ($files.hasOwnProperty(eventName)) {
+                            var relevancyFile = $files[eventName];
+                            file.setRelevancy(relevancyFile);
+                        };
+                    };
+                }
+            }
+        },
         newGuid: function() {
             var guid = '';
             for (var i = 1; i <= 32; i++) {
@@ -667,31 +489,13 @@ var data = {
             this.HTML = $('<div class="files-item"><select></select></div>');
             // 缓存属性值
             this.options = opt;
-            // 建立option列表数组
-            this.items = [];
-            for (var i = 0; i < this.options.data.length; i++) {
-                var item = this.options.data[i];
-                // 为每一行数据生成optionSide
-                this.items[i] = new _t.selectOption(item, i, this.options.showItemKey);
-                // 输出到Select
-                this.HTML.find('select').append(this.items[i].render());
-            };
-            // 缓存对象结果类型
-            this.valueData = {};
-            // 找到默认值,为所选默认值添加属性
-            for (var d = 0; d < this.items.length; d++) {
-                var element = this.items[d];
-                if (this.options.defaultValue == d) {
-                    element.setSelected();
-                    this.valueData = this.options.data[d];
-                    break;
-                };
-            };
             // 缓存模板数据
             this.layouts = [];
             // 缓存select对应元素名称
             this.objectName = objectName;
             this.constructor = 'select';
+            this.relevancyElement = [];
+
         },
         // 多选框类型
         checkBox: function(opt, events, objectName) {
@@ -750,6 +554,11 @@ var data = {
             this.objectName = objectName;
             this.constructor = 'radio';
 
+        },
+        hide: function(opt, events, objectName) {
+            this.options = opt;
+            this.objectName = objectName;
+            this.constructor = 'hide';
         },
     };
     _t.input.prototype = {
@@ -909,8 +718,33 @@ var data = {
         }
     };
     _t.select.prototype = {
+        init: function() {
+            // 建立option列表数组
+            this.items = [];
+            this.HTML.find('select').empty();
+            for (var i = 0; i < this.options.data.length; i++) {
+                var item = this.options.data[i];
+                // 为每一行数据生成optionSide
+                this.items[i] = new _t.selectOption(item, i, this.options.showItemKey);
+                // 输出到Select
+                this.HTML.find('select').append(this.items[i].render());
+            };
+            // 缓存对象结果类型
+            this.valueData = {};
+            // 找到默认值,为所选默认值添加属性
+            for (var d = 0; d < this.items.length; d++) {
+                var element = this.items[d];
+                if (this.options.defaultValue == d) {
+                    element.setSelected();
+                    this.valueData = this.options.data[d];
+                    break;
+                };
+            };
+        },
         // 渲染输出方法
         render: function() {
+            this.init();
+            this.relevancy();
             var $this = this;
             // 为模板绑定change事件,实现数据关联
             $this.HTML.find('select').change(function() {
@@ -923,6 +757,7 @@ var data = {
         change: function(index) {
             this.valueData = this.options.data[index];
             this.changeLayout();
+            this.relevancy();
         },
         // 获取所选对象,以对象形式呈现,完整反馈select所选对象,
         get: function() {
@@ -931,15 +766,19 @@ var data = {
         // 赋值 根据设置中的 setItemKey 属性 关联类型变换
         set: function(value) {
             var key = this.options.setItemKey;
+            var isComplete = false;
             for (var i = 0; i < this.options.data.length; i++) {
                 var element = this.options.data[i];
                 if (element[key] == value) {
                     this.items[i].setSelected();
                     this.valueData = this.items[i].data;
                     this.changeLayout();
+                    this.relevancy();
+                    isComplete = true;
                     break;
                 };
             }
+            return isComplete;
         },
         changeLayout: function() {
             var $this = this;
@@ -957,6 +796,24 @@ var data = {
         setLayoutData: function(data) {
             this.layouts.push(data);
         },
+        setRelevancy: function(data) {
+            this.relevancyElement.push(data);
+        },
+        relevancy: function() {
+            for (var i = 0; i < this.relevancyElement.length; i++) {
+                var element = this.relevancyElement[i];
+                var relevancyObjectName = this.options.relevancyEvent.split('=>')[1];
+                try {
+                    element.setData(this.valueData[relevancyObjectName]);
+                } catch (error) {
+                    element.setData([]);
+                };
+            }
+        },
+        setData: function(data) {
+            this.options.data = data;
+            this.init();
+        }
     };
     _t.selectOption.prototype = {
         render: function() {
@@ -1128,11 +985,43 @@ var data = {
         },
         // 给表单元素赋值
         render: function() {
+            // 给select 关联事件创建队列
+            var selectData = [];
+
             for (var item in this.result) {
                 if (this.result.hasOwnProperty(item)) {
-                    this.files[item].set(this.result[item]);
+                    if (this.files[item].constructor == 'select') {
+                        var data = {
+                            element: this.files[item],
+                            data: this.result[item]
+                        };
+                        selectData.push(data);
+                    } else {
+                        this.files[item].set(this.result[item]);
+                    }
                 }
-            }
+            };
+            console.log(selectData);
+
+            function selectSetDataByRelevancy() {
+                if (selectData.length == 0) {
+                    return;
+                };
+                var item = selectData.shift();
+                if (item.element.options.data.length == 0) {
+                    selectData.push(item);
+                    selectSetDataByRelevancy();
+                } else {
+                    if (!item.element.set(item.data)) {
+                        selectData.push(item)
+                    };
+                    selectSetDataByRelevancy();
+                };
+            };
+
+            selectSetDataByRelevancy();
+
+
         },
         getFilesData: function() {
             console.log(this.files);
@@ -1191,8 +1080,7 @@ var data = {
             };
             return data;
         }
-    }
-
+    };
     $.fn.freedomForm = function(options) {
         var $this = this;
         var namespace = [],
@@ -1202,18 +1090,286 @@ var data = {
         console.log(namespace);
         _f.bindEventToFile($events, $files);
         _f.bindEventtoLayout($layouts, $files);
+        _f.bindFileRelevancy($files);
         _f.renderHtml($files, $layouts, options.layout, $this);
         _f.autoEvent($events, options.event);
         return $events;
     };
 })(jQuery, window, document);
-var _data = $('#CRM').freedomForm(data);
-console.log(_data);
+
+
+
+
+Api.GET({
+    url: 'province.json',
+    success: function(result) {
+        var province = result;
+
+
+
+
+
+
+        var data = {
+            event: [{
+                type: 'ajax',
+                name: 'get',
+                setting: {
+                    url: 'index.json', // ajax 的路径
+                    type: 'GET', // 支持 GET POST DELETE PUT
+                    data: {}, // 传入对象
+                    auto: true, // 是否自动
+                    useData: true, // 是否使用DATA中对象(待改进)
+                    beforeEvent: function(data, callback) { // ajax 执行前进行回调
+                        callback(data); // 回调函数
+                    },
+                    afterEvent: {
+                        success: function(data, callback) { // ajax 执行后成功回调
+                            callback(data); // 回调函数
+                        },
+                        error: function(data, callback) { // ajax 执行后失败回调
+                            callback(data); // 回调函数
+                        },
+                    }
+                }
+            }, {
+                type: 'fun',
+                name: 'showValue',
+                setting: {
+                    event: function(data) { // ajax 执行前进行回调
+                        console.log(data);
+                    }
+                }
+            }],
+            file: [{
+                type: 'input',
+                name: 'name',
+                setting: {
+                    filter: [], // 过滤方法 (set value 时进行操作)
+                    label: '姓名 :', // 表单标签名称
+                    displayName: '姓名', // 提示信息名称
+                    readonly: true, // 是否只读
+                    judes: ['notNull'], // 验证条件 (change value 时进行操作)
+                },
+            }, {
+                type: 'input',
+                name: 'phone',
+                setting: {
+                    filter: [], // 过滤方法 (set value 时进行操作)
+                    label: '电话 :', // 表单标签名称
+                    displayName: '电话', // 提示信息名称
+                    readonly: false, // 是否只读
+                    judes: ['notNull', 'isPhone'], // 验证条件 (change value 时进行操作)
+                },
+            }, {
+                type: 'input',
+                name: 'age',
+                setting: {
+                    filter: [], // 过滤方法 (set value 时进行操作)
+                    label: '年龄 :', // 表单标签名称
+                    displayName: '年龄', // 提示信息名称
+                    readonly: false, // 是否只读
+                    judes: ['notNull', 'isInteger'], // 验证条件 (change value 时进行操作)
+                },
+            }, {
+                name: 'updateButton',
+                type: 'button',
+                setting: {
+                    label: '获取全部表单值',
+                    clickEvent: 'showValue',
+                },
+            }, {
+                name: 'type',
+                type: 'select',
+                setting: {
+                    label: '类别 :', // 表单标签名称
+                    displayName: '类别', // 提示信息名称
+                    setItemKey: 'value', // 要赋值的字段对象KEY值
+                    showItemKey: 'name', // 要显示的字段对象KEY值
+                    // defaultValue: null,
+                    defaultValue: 0,
+                    // 赋予默认值,可直接复制数组下标或 根据 setItemKey 的对象名称赋值; 区别方法, 字符串 / 数字
+                    data: [{
+                        name: '类别1',
+                        value: '1',
+                    }, {
+                        name: '类别2',
+                        value: '2',
+                    }],
+                    readonly: false,
+                }
+            }, {
+                type: 'textarea',
+                name: 'remark',
+                setting: {
+                    filter: [], // 过滤方法 (set value 时进行操作)
+                    label: '详情 :', // 表单标签名称
+                    displayName: '详情', // 提示信息名称
+                    readonly: false, // 是否只读
+                    judes: ['notNull'], // 验证条件 (change value 时进行操作)
+                },
+            }, {
+                type: 'checkBox',
+                name: 'isCheck',
+                setting: {
+                    label: '显示模板',
+                    defaultValue: false, // 可选值为 true 或 false
+                    readonly: false,
+                }
+            }, {
+                type: 'textarea',
+                name: 'declare',
+                setting: {
+                    filter: [], // 过滤方法 (set value 时进行操作)
+                    label: '简介 :', // 表单标签名称
+                    displayName: '简介', // 提示信息名称
+                    readonly: true, // 是否只读
+                    judes: ['notNull'], // 验证条件 (change value 时进行操作)
+                }
+            }, {
+                type: 'radio',
+                name: 'sex',
+                setting: {
+                    label: '性别 :', // 表单标签名称
+                    displayName: '性别', // 提示信息名称
+                    setItemKey: 'value', // 要赋值的字段对象KEY值
+                    showItemKey: 'name', // 要显示的字段对象KEY值
+                    // defaultValue: null,
+                    defaultValue: 0,
+                    // 赋予默认值,可直接复制数组下标或 根据 setItemKey 的对象名称赋值; 区别方法, 字符串 / 数字
+                    data: [{
+                        name: '男',
+                        value: '1',
+                    }, {
+                        name: '女',
+                        value: '2',
+                    }],
+                    readonly: false,
+                }
+            }, {
+                type: 'select',
+                name: 'province1',
+                setting: {
+                    label: '省 : ',
+                    displayName: '省',
+                    setItemKey: 'value',
+                    showItemKey: 'name',
+                    defaultValue: 0,
+                    data: province,
+                    relevancyEvent: 'province2=>list',
+                }
+            }, {
+                type: 'select',
+                name: 'province2',
+                setting: {
+                    label: '省 : ',
+                    displayName: '省',
+                    setItemKey: 'value',
+                    showItemKey: 'name',
+                    defaultValue: 0,
+                    data: [],
+                    relevancyEvent: 'province3=>list',
+                }
+            }, {
+                type: 'select',
+                name: 'province3',
+                setting: {
+                    label: '省 : ',
+                    displayName: '省',
+                    setItemKey: 'value',
+                    showItemKey: 'name',
+                    defaultValue: 0,
+                    data: [],
+                }
+            }],
+            layout: [{
+                type: 'block',
+                name: 'box',
+                setting: {
+                    className: null,
+                    state: 'show',
+                    event: null,
+                    subset: ['name', 'type', 'box1', 'box2', 'isCheck', 'box3', 'declare', 'sex', 'box4', 'updateButton'],
+                    parent: 'parent',
+                    title: {
+                        text: '标题',
+                        className: 'titleClass'
+                    }
+                },
+            }, {
+                type: 'block',
+                name: 'box1',
+                setting: {
+                    className: null,
+                    template: null,
+                    state: 'show',
+                    event: 'type?value=1', // 模板展示方法
+                    subset: ['age'],
+                    parent: 'box',
+                    title: {
+                        text: 'select 控制表单现隐 : 表单1',
+                        className: 'titleClass',
+                    }
+                },
+            }, {
+                type: 'block',
+                name: 'box2',
+                setting: {
+                    className: null,
+                    template: null,
+                    state: 'hide',
+                    event: 'type?value=2', // 模板展示方法
+                    subset: ['phone'],
+                    parent: 'box',
+                    title: {
+                        text: 'select 控制表单现隐 : 表单2',
+                        className: 'titleClass',
+                    }
+                },
+            }, {
+                type: 'block',
+                name: 'box3',
+                setting: {
+                    className: null,
+                    state: 'show',
+                    event: 'isCheck?true',
+                    subset: [],
+                    parent: 'parent',
+                    title: {
+                        text: 'CheckBox控制模板显示隐藏',
+                        className: 'titleClass',
+                    }
+                },
+            }, {
+                type: 'block',
+                name: 'box4',
+                setting: {
+                    className: null,
+                    state: 'show',
+                    event: 'isCheck?true',
+                    subset: ['province1', 'province2', 'province3'],
+                    parent: 'parent',
+                    title: {
+                        text: '省市区3级联动',
+                        className: 'titleClass',
+                    }
+                },
+            }]
+        };
+        var _data = $('#CRM').freedomForm(data);
+        console.log(_data);
+    }
+});
+
+
+
+
 
 // 问题
 // select的默认值支持两种形式
 // 目前只完成了 下标形式的默认值赋值,
 // 待完成的是以字段方式判断默认值的方法
+
 
 // 问题
 // url 方法需要在before中回调并显示出来
@@ -1221,18 +1377,16 @@ console.log(_data);
 // 问题
 // 初始获取值时,应寻找空间,缓存默认值
 
-// 问题 
-// select 3级联动
 
 // 问题
 // 增加所有方法属性默认值
 
 // 问题
-// date事件,方法,及设置
+// file 类型文件上传
 
 // 问题
-// form 嵌套 ();
-//
+// date事件,方法,及设置
+
 // 新建模板类型,为 list 或 form; 支持原有的layout方法
 // list 类型,默认带统一增加按钮和某一元素的删除按钮
 // list --> item --> element --> deleteButton
