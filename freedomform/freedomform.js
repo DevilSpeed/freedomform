@@ -559,6 +559,7 @@ var Api = common;
             this.options = opt;
             this.objectName = objectName;
             this.constructor = 'hide';
+            this.value = null;
         },
     };
     _t.input.prototype = {
@@ -813,6 +814,7 @@ var Api = common;
         setData: function(data) {
             this.options.data = data;
             this.init();
+            this.relevancy();
         }
     };
     _t.selectOption.prototype = {
@@ -933,6 +935,17 @@ var Api = common;
             };
         },
     };
+    _t.hide.prototype = {
+        render: function() {
+            return '';
+        },
+        get: function() {
+            return this.value;
+        },
+        set: function(data) {
+            this.value = data;
+        }
+    };
     var _e = {
         defaultEvent: function(data, callback) { // ajax 执行前进行回调
             callback(data); // 回调函数
@@ -987,7 +1000,6 @@ var Api = common;
         render: function() {
             // 给select 关联事件创建队列
             var selectData = [];
-
             for (var item in this.result) {
                 if (this.result.hasOwnProperty(item)) {
                     if (this.files[item].constructor == 'select') {
@@ -1001,7 +1013,6 @@ var Api = common;
                     }
                 }
             };
-            console.log(selectData);
 
             function selectSetDataByRelevancy() {
                 if (selectData.length == 0) {
@@ -1018,10 +1029,7 @@ var Api = common;
                     selectSetDataByRelevancy();
                 };
             };
-
             selectSetDataByRelevancy();
-
-
         },
         getFilesData: function() {
             console.log(this.files);
@@ -1105,11 +1113,6 @@ Api.GET({
     success: function(result) {
         var province = result;
 
-
-
-
-
-
         var data = {
             event: [{
                 type: 'ajax',
@@ -1142,6 +1145,10 @@ Api.GET({
                 }
             }],
             file: [{
+                type: 'hide',
+                name: 'id',
+                setting: {}
+            }, {
                 type: 'input',
                 name: 'name',
                 setting: {
