@@ -1,7 +1,4 @@
 var Api = common;
-
-
-
 (function($, win, doc, undefined) {
     // 定义错误提示信息
     var _j = {
@@ -561,6 +558,17 @@ var Api = common;
             this.constructor = 'hide';
             this.value = null;
         },
+        form: function(opt, files) {
+            // 初始化模板类型
+            this.HTML = $('<div class="block' + (opt.className || '') + '"></div>');
+            if (opt.title) {
+                this.TITLE = $('<div class="' + opt.title.className + '">' + opt.title.text + '</div>');
+                this.append(this.TITLE);
+            };
+            // 缓存属性值
+            this.options = opt;
+            this.constructor = 'form';
+        }
     };
     _t.input.prototype = {
         // 渲染html
@@ -946,6 +954,31 @@ var Api = common;
             this.value = data;
         }
     };
+    _t.form.prototype = {
+        init: {},
+        // 输出模板类型
+        render: function() {
+            // 检查默认值中设置的显示隐藏
+            if (this.options.state == 'show') {
+                this.show();
+            } else {
+                this.hide();
+            };
+            return this.HTML;
+        },
+        // 封装添加事件,为元素插入做准备
+        append: function(data) {
+            this.HTML.append(data);
+        },
+        // 显示调用事件
+        show: function() {
+            this.HTML.css('display', 'block');
+        },
+        // 隐藏调用事件
+        hide: function() {
+            this.HTML.css('display', 'none');
+        }
+    };
     var _e = {
         defaultEvent: function(data, callback) { // ajax 执行前进行回调
             callback(data); // 回调函数
@@ -1031,9 +1064,6 @@ var Api = common;
             };
             selectSetDataByRelevancy();
         },
-        getFilesData: function() {
-            console.log(this.files);
-        },
         setSetting: function(data) {
             this.options = data;
             this.perform();
@@ -1046,12 +1076,12 @@ var Api = common;
             for (var item in this.files) {
                 if (this.files.hasOwnProperty(item)) {
                     var element = this.files[item];
-
                     try {
                         data[item] = element.get();
                     } catch (error) {
                         if (element.constructor != 'button' && element.constructor != 'block') {
-                            console.log(element + ':改对象没有取值方法');
+                            console.log(element);
+                            console.log(element.constructor + ':' + element.objectName + ' --> 该对象没有取值方法');
                         } else {
                             // 忽略模板类型及按钮类型的取值方法
                         }
@@ -1064,7 +1094,7 @@ var Api = common;
     _e.fun.prototype = {
         perform: function() {
             var $this = this;
-            this.event($this.getFielsValue());
+            this.event($this.getFielsValue(), this.files);
         },
         setFiles: function(data) {
             this.files = data;
@@ -1139,8 +1169,9 @@ Api.GET({
                 type: 'fun',
                 name: 'showValue',
                 setting: {
-                    event: function(data) { // ajax 执行前进行回调
+                    event: function(data, elements) { // ajax 执行前进行回调
                         console.log(data);
+                        console.log(elements);
                     }
                 }
             }],
@@ -1296,7 +1327,7 @@ Api.GET({
                     className: null,
                     state: 'show',
                     event: null,
-                    subset: ['name', 'type', 'box1', 'box2', 'isCheck', 'box3', 'declare', 'sex', 'box4', 'updateButton'],
+                    subset: ['name', 'type', 'box1', 'box2', 'isCheck', 'box3', 'declare', 'sex', 'box4', 'updateButton', 'formBox'],
                     parent: 'parent',
                     title: {
                         text: '标题',
@@ -1355,9 +1386,26 @@ Api.GET({
                     state: 'show',
                     event: 'isCheck?true',
                     subset: ['province1', 'province2', 'province3'],
-                    parent: 'parent',
+                    parent: 'box',
                     title: {
                         text: '省市区3级联动',
+                        className: 'titleClass',
+                    }
+                },
+            }, {
+                type: "form",
+                name: "formBox",
+                setting: {
+                    className: null,
+                    state: 'show',
+                    event: null,
+                    subset: {
+                        event: [],
+                        files: [],
+                        layout: [],
+                    },
+                    title: {
+                        text: '嵌套表单',
                         className: 'titleClass',
                     }
                 },
@@ -1389,10 +1437,10 @@ Api.GET({
 // 增加所有方法属性默认值
 
 // 问题
-// file 类型文件上传
+// file 类型文件上传  txt jpg png jepg doc docx zip xls xlsx ppt pptx pdf  
 
 // 问题
-// date事件,方法,及设置
+// date事件,方法,及设置  UTC 
 
 // 新建模板类型,为 list 或 form; 支持原有的layout方法
 // list 类型,默认带统一增加按钮和某一元素的删除按钮
