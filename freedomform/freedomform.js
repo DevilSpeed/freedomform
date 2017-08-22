@@ -741,14 +741,26 @@ var Api = common;
             // 缓存对象结果类型
             this.valueData = {};
             // 找到默认值,为所选默认值添加属性
-            for (var d = 0; d < this.items.length; d++) {
-                var element = this.items[d];
-                if (this.options.defaultValue == d) {
-                    element.setSelected();
-                    this.valueData = this.options.data[d];
-                    break;
+
+            if (_j.type(this.options.defaultValue, "number")) {
+                for (var d = 0; d < this.items.length; d++) {
+                    var element = this.items[d];
+                    if (this.options.defaultValue == d) {
+                        element.setSelected();
+                        this.valueData = this.options.data[d];
+                        break;
+                    };
                 };
-            };
+            } else {
+                for (var d = 0; d < this.items.length; d++) {
+                    var element = this.items[d];
+                    if (this.options.defaultValue == element.data[this.options.setItemKey]) {
+                        element.setSelected();
+                        this.valueData = this.options.data[d];
+                        break;
+                    };
+                };
+            }
         },
         // 渲染输出方法
         render: function() {
@@ -1225,7 +1237,7 @@ Api.GET({
                     setItemKey: 'value', // 要赋值的字段对象KEY值
                     showItemKey: 'name', // 要显示的字段对象KEY值
                     // defaultValue: null,
-                    defaultValue: 0,
+                    defaultValue: "2",
                     // 赋予默认值,可直接复制数组下标或 根据 setItemKey 的对象名称赋值; 区别方法, 字符串 / 数字
                     data: [{
                         name: '类别1',
@@ -1415,15 +1427,6 @@ Api.GET({
         console.log(_data);
     }
 });
-
-
-
-
-
-// 问题
-// select的默认值支持两种形式
-// 目前只完成了 下标形式的默认值赋值,
-// 待完成的是以字段方式判断默认值的方法
 
 
 // 问题
