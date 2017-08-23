@@ -277,7 +277,7 @@ var Api = common;
                 // 验证元素名称是否在命名空间中
                 _f.checkNamespace(item.name, namespace);
                 // 创建模板元素, 并赋值给layouts对象
-                layouts[item.name] = new _t[item.type](item.setting);
+                layouts[item.name] = new _t[item.type](item.setting, null, item.name);
             };
             return layouts;
         },
@@ -558,7 +558,7 @@ var Api = common;
             this.constructor = 'hide';
             this.value = null;
         },
-        form: function(opt, files) {
+        form: function(opt, files, objectName) {
             // 初始化模板类型
             this.HTML = $('<div class="block' + (opt.className || '') + '"></div>');
             if (opt.title) {
@@ -568,6 +568,7 @@ var Api = common;
             // 缓存属性值
             this.options = opt;
             this.constructor = 'form';
+            this.objectName = objectName;
         }
     };
     _t.input.prototype = {
@@ -1019,12 +1020,15 @@ var Api = common;
     _e.ajax.prototype = {
         perform: function() {
             var $this = this;
-            if ($this.options.useData) {
+            if ($this.options.useFormData) {
                 var data = $this.options.data;
             } else {
                 var data = $this.getFielsValue();
             };
-            $this.options.beforeEvent(data, function(result) {
+            $this.options.beforeEvent({
+                data: data,
+                options: $this.options
+            }, function() {
                 Api.GET({
                     url: $this.options.url,
                     success: function(result) {
@@ -1101,6 +1105,9 @@ var Api = common;
                 }
             };
             return data;
+        },
+        getResult: function() {
+            return $this.result;
         }
     };
     _e.fun.prototype = {
@@ -1163,10 +1170,14 @@ Api.GET({
                     url: 'index.json', // ajax 的路径
                     type: 'GET', // 支持 GET POST DELETE PUT
                     data: {}, // 传入对象
-                    auto: true, // 是否自动
-                    useData: true, // 是否使用DATA中对象(待改进)
-                    beforeEvent: function(data, callback) { // ajax 执行前进行回调
-                        callback(data); // 回调函数
+                    auto: true, // 是否自动(待改进)
+                    useFormData: true, // 是否使用DATA中对象(待改进)
+                    beforeEvent: function(ajaxOptions, next) { // ajax 执行前进行回调
+                        // ajaxOptions.data 页面获取的所有参数信息
+                        // ajaxOptions.options 为setting中所有参数
+
+                        // ajaxOptions.options.url = "index2.json";
+                        next(); // 回调函数
                     },
                     afterEvent: {
                         success: function(data, callback) { // ajax 执行后成功回调
@@ -1411,11 +1422,7 @@ Api.GET({
                     className: null,
                     state: 'show',
                     event: null,
-                    subset: {
-                        event: [],
-                        files: [],
-                        layout: [],
-                    },
+                    subset: [],
                     title: {
                         text: '嵌套表单',
                         className: 'titleClass',
@@ -1427,14 +1434,6 @@ Api.GET({
         console.log(_data);
     }
 });
-
-
-// 问题
-// url 方法需要在before中回调并显示出来
-
-// 问题
-// 初始获取值时,应寻找空间,缓存默认值
-
 
 // 问题
 // 增加所有方法属性默认值
